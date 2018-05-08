@@ -12,6 +12,7 @@
 /dts-v1/;
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
+#include <dt-bindings/interrupt-controller/irq.h>
 #include "imx25.dtsi"
 
 / {
@@ -23,6 +24,12 @@
 	};
 
 	clocks {
+		clk_16M: can_clock {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <16000000>;
+		};
+
 		clk_24M: codec_clock {
 			compatible = "fixed-clock";
 			reg=<0>;
@@ -34,20 +41,20 @@
 	display: display {
 		model = "DVI-SVGA";
 		bits-per-pixel = <16>;
-		fsl,pcr = <0xfa208b80>;
+		fsl,pcr = <0xfac08b80>;
 		bus-width = <18>;
 		native-mode = <&dvi_svga_timings>;
 		display-timings {
 			dvi_svga_timings: 800x600 {
-				clock-frequency = <40000000>;
+				clock-frequency = <34000000>;
 				hactive = <800>;
 				vactive = <600>;
-				hback-porch = <75>;
-				hfront-porch = <75>;
-				vback-porch = <7>;
-				vfront-porch = <75>;
-				hsync-len = <7>;
-				vsync-len = <7>;
+				hback-porch = <57>;
+				hfront-porch = <21>;
+				vback-porch = <10>;
+				vfront-porch = <1>;
+				hsync-len = <20>;
+				vsync-len = <2>;
 			};
 		};
 	};
@@ -78,6 +85,15 @@
 		compatible = "simple-bus";
 		#address-cells = <1>;
 		#size-cells = <0>;
+
+		reg_dummy: dummy-3v3 {
+			compatible = "regulator-fixed";
+			regulator-name = "dummy-3v3";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-boot-on;
+			regulator-always-on;
+		};
 
 		reg_tps65053_l1: tps65053-3v3 {
 			compatible = "regulator-fixed";
@@ -132,6 +148,24 @@
 			regulator-boot-on;
 			regulator-always-on;
 		};
+
+		reg_usb_h1_en: usb-h1-en {
+			compatible = "regulator-fixed";
+			regulator-name = "bb-usbh1-en";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio4 11 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
+
+		reg_usb_otg_en: usb_otg-en {
+			compatible = "regulator-fixed";
+			regulator-name = "bb-usbotg-en";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+			enable-active-high;
+		};
 	};
 
 	sound {		
@@ -164,14 +198,9 @@
 &esdhc1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_esdhc1>;
-	cd-gpios = <&gpio1 20>;
-	status = "okay";
-};
-
-&esdhc1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_esdhc1>;
-	/*cd-gpios = <&gpio4 4>;*/
+/*
+	cd-gpios = <&gpio4 4 GPIO_ACTIVE_LOW>;
+*/
 	status = "okay";
 };
 
@@ -182,8 +211,18 @@
 	phy-mode = "rmii";
 	phy-supply = <&reg_tps65053_vldo2>;
 	status = "okay";
-};
+/*
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
 
+		phy0: ethernet-phy@1f {
+			compatible = "smsc,lan8700";
+			reg = <0x1f>;
+		};
+	};
+*/
+};
 
 &iomuxc {
 	pinctrl_audmux: audmuxgrp {
@@ -306,6 +345,30 @@
 		>;
 	};
 
+	pinctrl_spi1: spi1grp {
+		fsl,pins = <
+			MX25_PAD_CSPI1_MISO__CSPI1_MISO	0x0
+			MX25_PAD_CSPI1_MOSI__CSPI1_MOSI	0x0
+			MX25_PAD_CSPI1_SCLK__CSPI1_SCLK	0x0
+			MX25_PAD_CSPI1_SS0__GPIO_1_16	0xe0 /* CS0 Module */
+			MX25_PAD_CSPI1_SS1__GPIO_1_17	0xe0 /* CS1 Baseboard */
+		>;
+	};
+
+	pinctrl_spi1_can: spi1cangrp {
+		fsl,pins = <
+			MX25_PAD_A24__GPIO_2_10	0xe0 /* CS */
+			MX25_PAD_A20__GPIO_2_6	0xe0 /* IRQ */
+		>;
+	};
+
+	pinctrl_spi1_touch: spi1touchgrp {
+		fsl,pins = <
+			MX25_PAD_A25__GPIO_2_11	0xe0 /* CS */
+			MX25_PAD_A21__GPIO_2_7	0xe0 /* IRQ */
+		>;
+	};
+
 	pinctrl_uart1: uart1grp {
 		fsl,pins = <
 			MX25_PAD_UART1_TXD__UART1_TXD	0x80000000
@@ -330,6 +393,18 @@
 			MX25_PAD_LBA__UART5_RXD		0x80000000
 			MX25_PAD_CS4__UART5_CTS		0x80000000
 			MX25_PAD_CS5__UART5_RTS		0x80000000
+		>;
+	};
+
+	pinctrl_usbh1: usbh1grp {
+		fsl,pins = <
+			MX25_PAD_D9__GPIO_4_11		0xe0
+		>;
+	};
+
+	pinctrl_usbotg: usbotggrp {
+		fsl,pins = <
+			MX25_PAD_GPIO_A__GPIO_A		0xe0
 		>;
 	};
 };
@@ -374,7 +449,10 @@
 };
 
 &lcdc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_lcd>;
 	display = <&display>;
+	lcd-supply = <&reg_dummy>;
 	status = "okay";
 };
 
@@ -385,6 +463,86 @@
 	nand-ecc-mode = "hw";
 	nand-bus-width = <8>;
 	status = "okay";
+/*
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		partition@0 {
+			label = "barebox";
+			reg = <0x0 0x80000>;
+		};
+
+		partition@80000 {
+			label = "environment";
+			reg = <0x80000 0x80000>;
+		};
+
+		partition@100000 {
+			label = "kernel";
+			reg = <0x100000 0x400000>;
+		};
+
+		partition@500000 {
+			label = "rootfs";
+			reg = <0x500000 0xf800000>;
+
+	};
+*/
+};
+
+&spi1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_spi1>;
+	cs-gpios = <&gpio1 16 GPIO_ACTIVE_LOW>,
+		   <&gpio1 17 GPIO_ACTIVE_LOW>,
+		   <&gpio2 10 GPIO_ACTIVE_LOW>,
+		   <&gpio2 11 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	flash_spi_mod: m25p80@0 {
+		compatible = "m25p80", "jedec,spi-nor";
+		spi-max-frequency = <40000000>;
+		reg = <0>;
+	};
+
+	flash_spi_bb: m25p80@1 {
+		compatible = "m25p80", "jedec,spi-nor";
+		spi-max-frequency = <40000000>;
+		reg = <1>;
+	};
+
+	can_spi_bb: can {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_spi1_can>;
+		compatible = "microchip,mcp2515";
+		reg = <2>;
+		clocks = <&clk_16M>;
+		spi-max-frequency = <10000000>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <6 IRQ_TYPE_EDGE_FALLING>;
+	};
+
+	touch_spi_bb: touch {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_spi1_touch>;
+		compatible = "ti,ads7846";
+		reg = <3>;
+		spi-cpol;
+		spi-max-frequency = <1500000>;
+		interrupt-parent = <&gpio2>;
+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
+		pendown-gpio = <&gpio2 7 0>;
+
+		ti,x-min = /bits/ 16 <0>;
+		ti,x-max = /bits/ 16 <8000>;
+		ti,y-min = /bits/ 16 <0>;
+		ti,y-max = /bits/ 16 <4800>;
+		ti,x-plate-ohms = /bits/ 16 <300>;
+		ti,y-plate-ohms = /bits/ 16 <600>;
+		ti,pressure-max = /bits/ 16 <255>;
+	};
 };
 
 &ssi1 {
@@ -414,10 +572,12 @@
 &usbhost1 {
 	phy_type = "serial";
 	dr_mode = "host";
+	vbus-supply = <&reg_usb_h1_en>;
 	status = "okay";
 };
 
 &usbotg {
 	/*external-vbus-divider;*/
+	vbus-supply = <&reg_usb_otg_en>;
 	status = "okay";
 };
