@@ -30,11 +30,10 @@
 			clock-frequency = <16000000>;
 		};
 
-		clk_24M: codec_clock {
+		clk_12288k: codec_clock {
 			compatible = "fixed-clock";
-			reg=<0>;
 			#clock-cells = <0>;
-			clock-frequency = <24000000>;
+			clock-frequency = <12288000>;
 		};
 	};
 
@@ -418,7 +417,7 @@
 	codec: sgtl5000@0a {
 		compatible = "fsl,sgtl5000";
 		reg = <0x0a>;
-		clocks = <&clks 1>;
+		clocks = <&clk_12288k>;
 		VDDA-supply = <&reg_lp2980_3v3>;
 		VDDIO-supply = <&reg_tps65053_l1>;
 	};
