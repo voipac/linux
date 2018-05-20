@@ -423,13 +423,13 @@
 		VDDA-supply = <&reg_lp2980_3v3>;
 		VDDIO-supply = <&reg_tps65053_l1>;
 	};
-
+/*
         eeprom_i2c_mod: at24c64@56 {
                 compatible = "at,24c64";
                 pagesize = <32>;
                 reg = <0x56>;
         };
-
+*/
         eeprom_i2c_bb: at24c512@57 {
                 compatible = "at,24c512";
                 pagesize = <128>;
