@@ -176,7 +176,7 @@
 			     "fsl,imx-audio-sgtl5000";
 		model = "imx25-vmx25-sgtl5000";
 		ssi-controller = <&ssi1>;
-		audio-codec = <&codec>;
+		audio-codec = <&codec_i2c_bb>;
 		audio-routing =
 			"MIC_IN", "Mic Jack",
 			"Mic Jack", "Mic Bias",
@@ -421,7 +421,7 @@
 	pinctrl-0 = <&pinctrl_i2c1>;
 	status = "okay";
 
-	codec: sgtl5000@0a {
+	codec_i2c_bb: sgtl5000@0a {
 		compatible = "fsl,sgtl5000";
 		reg = <0x0a>;
 		clocks = <&clk_12288k>;
@@ -440,6 +440,11 @@
                 pagesize = <128>;
                 reg = <0x57>;
         };
+
+	ds1339_i2c_bb: rtc@68 {
+		compatible = "dallas,ds1339";
+		reg = <0x68>;
+	};
 };
 
 &kpp {
@@ -553,7 +558,7 @@
 };
 
 &ssi1 {
-	codec-handle = <&codec>;
+	codec-handle = <&codec_i2c_bb>;
 	fsl,mode = "i2s-slave";
 	status = "okay";
 };
