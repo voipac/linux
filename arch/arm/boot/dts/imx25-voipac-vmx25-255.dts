@@ -1,0 +1,36 @@
+/*
+ * Copyright (C) 2014-2018 Voipac.
+ *
+ * The code contained herein is licensed under the GNU General Public
+ * License. You may obtain a copy of the GNU General Public License
+ * Version 2 or later at the following locations:
+ *
+ * http://www.opensource.org/licenses/gpl-license.html
+ * http://www.gnu.org/copyleft/gpl.html
+ */
+
+/dts-v1/;
+#include "imx25-voipac-vmx25.dtsi"
+
+/ {
+	memory {
+		reg = <0x80000000 0x04000000 0x90000000 0x04000000>;
+	};
+};
+
+&i2c1 {
+        eeprom_i2c_mod: at24c512@56 {
+                compatible = "at,24c512";
+                pagesize = <128>;
+                reg = <0x56>;
+        };
+};
+
+&nfc {
+	partitions {
+		partition@500000 {
+			label = "rootfs";
+			reg = <0x500000 0x7800000>;
+		};
+	};
+};
