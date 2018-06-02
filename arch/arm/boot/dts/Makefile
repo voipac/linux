@@ -324,6 +324,7 @@ dtb-$(CONFIG_SOC_IMX25) += \
 	imx25-pdk.dtb \
 	imx25-voipac-vmx25-265.dtb \
 	imx25-voipac-vmx25-264.dtb \
+	imx25-voipac-vmx25-255.dtb \
 	imx25-voipac-vmx25-254.dtb
 dtb-$(CONFIG_SOC_IMX27) += \
 	imx27-apf27.dtb \
